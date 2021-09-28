@@ -1,0 +1,19 @@
+version: '3.7'
+volumes:
+  db_data:
+    name: sqlserver_data
+
+services:
+  sqlserver:
+    hostname: sqlserver
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    env_file: .env
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: ${SA_PASSWORD}
+      TZ: ${TIMEZONE}
+    volumes:
+      - db_data:/var/opt/mssql
+    ports:
+      - 1433:1433
+
