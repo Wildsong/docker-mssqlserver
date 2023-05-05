@@ -10,6 +10,7 @@ It is for development and testing only, not production.
 ## Set up
 
 Copy sample.env to .env and edit for your needs.
+The username will be "sa". You define the password.
 
 Note there are password complexity rules.
 Minimum length is 8, mix of upper and lower case and symbols.
@@ -19,9 +20,9 @@ Minimum length is 8, mix of upper and lower case and symbols.
 The compose.yaml is very simple because this is only a testing deployment,
 so for example it will not restart after the host is rebooted.
 
-Do a "pull" to make sure I have the latest image cached.
+Do a "pull" to make sure you have the latest image.
 
-    docker pull mcr.microsoft.com/mssql/server:2019-latest
+    docker pull mcr.microsoft.com/mssql/server:2022-latest
     docker compose up -d
 
 If you can't get the server to start, leave off -d to see the log messages.
@@ -30,7 +31,7 @@ If you can't get the server to start, leave off -d to see the log messages.
 
 You can get a command line on the server with this command. Or use the shell script sqlcmd.sh.
 
-    docker exec -it sqlserver_sqlserver_1 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P <your_password>
+    docker exec -it sqlserver-sqlserver-1 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P <your_password>
 
 You can install SQL Server Management Studio (SSMS) on a Windows Desktop.
 It is available here: https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms
@@ -39,13 +40,29 @@ It runs over port 1433.
 Port 1433 is exposed on your local network, so you should be able
 to see the SQL Server using the name of the hosting machine in SSMS.
 
+## Creating a table
+
+SSMS won't let me. It complains "This backend version is not supported to design database diagrams or tables. (MS Visual Database Tools)"
+I guess that "MS Visual Database Tools" is something I am supposed to install? Whatever, SQL is fine too.
+
+    USE county_records;
+    GO
+    CREATE SCHEMA property AUTHORIZATION dbo;
+    CREATE TABLE county_records.property.titles AS titles (
+        id : INT PRIMARY KEY NOT NULL,
+        name : VARCHAR(255) NOT NULL,
+        document : VARCHAR(255) NOT NULL
+    );
+    CREATE TABLE county_records.environment AS environment (
+        key: VARCHAR(255) PRIMARY KEY NOT NULL,
+        value: VARCHAR(255)
+    );
+
 ## Loading data
 
 (Microsoft docs on doing a backup)[https://docs.microsoft.com/en-us/sql/relational-databases/backup-restore/create-a-full-database-backup-sql-server?view=sql-server-ver15]
 
-On my live server, I used SQL Server Management Studio (SSMS) from my desktop to do a full backup.
-I logged in there as myself with Windows authetentication. I used this as the destination:
-C:\Temp\ClatsopBackup.bak and when it was done the file was generated on the server, not my desktop. Well, I can deal with that.
+On my live ArcGIS geodatabase server, I used SQL Server Management Studio (SSMS) from my desktop to do a full backup. I logged in there as myself with Windows authentication. I used this as the destination: C:\Temp\ClatsopBackup.bak and when it was done the file was generated on the server, not my desktop. Well, I can deal with that.
 
 (Microsoft migration notes)[https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-database-transact-sql-compatibility-level?view=sql-server-ver15#compatibility-levels-and-database-engine-upgrades]
 I am going from version 12 (2014) to version 15 (2019) which is a pretty big jump.
@@ -86,7 +103,7 @@ There is a process for upgrading the database queries, this probably won't affec
 instructions are here (Upgrade DB Compatibility use QTA)[https://docs.microsoft.com/en-us/sql/relational-databases/performance/upgrade-dbcompat-using-qta?view=sql-server-ver15].
 This process takes at least a day because step one is to capture data on the existing queries.
 
-## Register the server as a data store in Server
+## (Optional) Register the server as a data store in ArcGIS Enterprise Server
 
 (Register data with Server)[https://enterprise.arcgis.com/en/server/latest/manage-data/linux/registering-your-data-with-arcgis-server-using-manager.htm]
 or
