@@ -5,8 +5,7 @@ volumes:
     name: sqlserver_data
 
 services:
-  sqlserver:
-    hostname: sqlserver
+  db:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: "Y"
@@ -17,3 +16,7 @@ services:
     ports:
       - 1433:1433
 
+  adminer:
+    image: adminer:latest
+    ports:
+      - 8888:8080

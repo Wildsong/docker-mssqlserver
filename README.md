@@ -27,38 +27,51 @@ Do a "pull" to make sure you have the latest image.
 
 If you can't get the server to start, leave off -d to see the log messages.
 
-## Connect
+## Management 
+
+### Management connections
 
 You can get a command line on the server with this command. Or use the shell script sqlcmd.sh.
 
     docker exec -it sqlserver-sqlserver-1 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P <your_password>
 
-You can install SQL Server Management Studio (SSMS) on a Windows Desktop.
+Windows people can  install SQL Server Management Studio (SSMS).
 It is available here: https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms
-It runs over port 1433.
 
-Port 1433 is exposed on your local network, so you should be able
-to see the SQL Server using the name of the hosting machine in SSMS.
+Since SQL Server runs on port 1433, your Windows machine running SSMS has
+to be able to reach that port, for me that means on the local network. 
 
-## Creating a table
+To use Linux or to get access over the Internet, this Docker also starts
+a copy of "adminer". I have it running on port 8888 and hiding behind a proxy.
 
-SSMS won't let me. It complains "This backend version is not supported to design database diagrams or tables. (MS Visual Database Tools)"
-I guess that "MS Visual Database Tools" is something I am supposed to install? Whatever, SQL is fine too.
+So locally I would use http://bellman:8888/ fpr example.
 
-    USE county_records;
+### Creating a database
+
+Database creation is not possible in adminer so I use the sqlcmd shell,
+
+    ./sqlcmd.sh
+    CREATE DATABASE county_records;
     GO
-    CREATE SCHEMA property AUTHORIZATION dbo;
-    CREATE TABLE county_records.property.titles AS titles (
-        id : INT PRIMARY KEY NOT NULL,
-        name : VARCHAR(255) NOT NULL,
-        document : VARCHAR(255) NOT NULL
+
+### Creating a table
+
+SSMS complains "This backend version is not supported to design database diagrams or tables. (MS Visual Database Tools)" I guess that "MS Visual Database Tools" is something I am supposed to install? Whatever, using SQL queries instead is fine too. So is adminer. Here's some SQL.
+
+    CREATE TABLE county_records.dbo.titles (
+        id INT PRIMARY KEY NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        document VARCHAR(255) NOT NULL
     );
-    CREATE TABLE county_records.environment AS environment (
-        key: VARCHAR(255) PRIMARY KEY NOT NULL,
-        value: VARCHAR(255)
+    CREATE TABLE county_records.dbo.environment (
+        id VARCHAR(255) PRIMARY KEY NOT NULL,
+        value VARCHAR(255)
     );
 
-## Loading data
+## Loading data with SSMS
+
+One way is to do a backup of existing data then load it using a restore operation.
+I set up a GIS sandbox this way.
 
 (Microsoft docs on doing a backup)[https://docs.microsoft.com/en-us/sql/relational-databases/backup-restore/create-a-full-database-backup-sql-server?view=sql-server-ver15]
 
@@ -77,8 +90,8 @@ I connected via SSMS from my Windows Desktop to the docker Sql Server and did th
 Since this is a brand-new instance of SQL Server there are no accounts at all on it, except "sa", 
 you set the password for that in the .env file, remember?
 
-You have to restore the database from a "Device" but actually it lets you choose a file once you go down
-that path.
+You have to restore the database from a "Device" but actually it lets you choose 
+a file once you go down that path.
 
 Once you have the restore operation pointing at the file, it will fill in the database name for you,
 instilling confidence you are in fact doing the right thing.
